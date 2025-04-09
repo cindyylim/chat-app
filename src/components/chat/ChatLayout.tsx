@@ -6,6 +6,7 @@ import {
 } from "../ui/resizable";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import Sidebar from "../Sidebar";
 
 interface ChatLayoutProps {
   defaultLayout: number[] | undefined;
@@ -23,6 +24,7 @@ const ChatLayout = ({ defaultLayout = [320, 480] }: ChatLayoutProps) => {
     window.addEventListener("resize", checkScreenWidth);
     return () => window.removeEventListener("resize", checkScreenWidth);
   }, []);
+
   return (
     <ResizablePanelGroup
       direction="horizontal"
@@ -50,11 +52,13 @@ const ChatLayout = ({ defaultLayout = [320, 480] }: ChatLayoutProps) => {
         className={cn(
           isCollapsed && "min-w-[80px] transition-all duration-300 ease-in-out"
         )}
-      ></ResizablePanel>
+      >
+        <Sidebar isCollapsed={isCollapsed} />
+      </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
         <div className="flex justify-center items-center h-full w-full px-10">
-          <div className="flex flex-col justify-center items-enter gap-4">
+          <div className="flex flex-col justify-center items-center gap-4">
             <img
               src="logo.png"
               alt="Logo"
