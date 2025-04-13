@@ -2,8 +2,14 @@ import Image from "next/image";
 import PreferencesTab from "@/components/PreferencesTab";
 import { cookies } from "next/headers";
 import ChatLayout from "@/components/chat/ChatLayout";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
+  const {isAuthenticated} = getKindeServerSession();
+  if (!(await isAuthenticated())) {
+    return redirect("/auth");
+  }
   const cookieStore = await cookies();
   const layout = cookieStore.get("react-resizable-panels:layout");
   const defaultLayout = layout ? JSON.parse(layout.value) : undefined;

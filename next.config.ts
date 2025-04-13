@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      {
+        source: '/api/auth/callback',
+        destination: '/auth/callback',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

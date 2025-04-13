@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { LogOut } from "lucide-react";
 import { useSound } from "use-sound";
 import { usePreferences } from "@/store/usePreferences";
+import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -88,7 +89,9 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
             </div>
           )}
           <div className="flex">
+            <LogoutLink>
             <LogOut size={22} cursor="pointer" />
+            </LogoutLink>
           </div>
         </div>
       </div>
