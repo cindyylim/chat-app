@@ -8,15 +8,18 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import Sidebar from "../Sidebar";
 import MessageContainer from "./MessageContainer";
-import { USERS } from "@/db/dummy";
+import { User } from "@/db/dummy";
+import { useSelectedUser } from "@/store/useSelectedUser";
+
 interface ChatLayoutProps {
   defaultLayout: number[] | undefined;
+  users: User[];
 }
 
-const ChatLayout = ({ defaultLayout = [320, 480] }: ChatLayoutProps) => {
+const ChatLayout = ({ defaultLayout = [320, 480], users}: ChatLayoutProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const selectedUser = USERS[0];
+  const {selectedUser} = useSelectedUser();
   useEffect(() => {
     const checkScreenWidth = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -54,7 +57,7 @@ const ChatLayout = ({ defaultLayout = [320, 480] }: ChatLayoutProps) => {
           isCollapsed && "min-w-[80px] transition-all duration-300 ease-in-out"
         )}
       >
-        <Sidebar isCollapsed={isCollapsed} />
+        <Sidebar isCollapsed={isCollapsed} users={users}/>
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>

@@ -38,7 +38,7 @@ const MessageList = () => {
               {message.senderId === selectedUser.id && (
                 <Avatar className="flex justify-center items-center">
                   <AvatarImage
-                    src={selectedUser.image || "/user-placeholder.png"}
+                    src={selectedUser.image || "/avatars/user-placeholder.png"}
                     alt="User Image"
                     className="border-2 border-white rounded-full"
                   />
@@ -58,7 +58,7 @@ const MessageList = () => {
               {message.senderId === currentUser.id && (
                 <Avatar className="flex justify-center items-center">
                   <AvatarImage
-                    src={currentUser.image || "/user-placeholder.png"}
+                    src={currentUser.image || "/avatars/user-placeholder.png"}
                     alt="User Image"
                     className="border-2 border-white rounded-full"
                   />

@@ -1,4 +1,4 @@
-import { USERS } from "@/db/dummy";
+import { User } from "@/db/dummy";
 import { ScrollArea } from "./ui/scroll-area";
 import { Tooltip, TooltipTrigger, TooltipProvider } from "./ui/tooltip";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
@@ -8,15 +8,19 @@ import { LogOut } from "lucide-react";
 import { useSound } from "use-sound";
 import { usePreferences } from "@/store/usePreferences";
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import { useSelectedUser } from "@/store/useSelectedUser";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 interface SidebarProps {
   isCollapsed: boolean;
+  users: User[];
 }
 
-const Sidebar = ({ isCollapsed }: SidebarProps) => {
-  const selectedUser = USERS[0];
-  const [playClickSound] = useSound("/sounds/mouse-click.mp3")
-  const {soundEnabled} = usePreferences()
+const Sidebar = ({ isCollapsed, users }: SidebarProps) => {
+  const [playClickSound] = useSound("/sounds/mouse-click.mp3");
+  const { soundEnabled } = usePreferences();
+  const { selectedUser, setSelectedUser } = useSelectedUser();
+  const {user} = useKindeBrowserClient();
 
   return (
     <div className="relative flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2 max-h-full overflow-auto bg-background">
@@ -28,15 +32,20 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
         </div>
       )}
       <ScrollArea className="gap-2 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collpased=true]]:px-2">
-        {USERS.map((user, idx) =>
+        {users.map((user, idx) =>
           isCollapsed ? (
             <TooltipProvider key={idx}>
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
-                  <div onClick={() => soundEnabled && playClickSound()}>
+                  <div
+                    onClick={() => {
+                      soundEnabled && playClickSound();
+                      setSelectedUser(user);
+                    }}
+                  >
                     <Avatar className="my-1 flex justify-center items-center">
                       <AvatarImage
-                        src={user.image || "/user-placeholder.png"}
+                        src={user.image || "/avatars/user-placeholder.png"}
                         alt="User Image"
                         className="border-2 border-white rounded-full w-10 h-10"
                       />
@@ -52,15 +61,19 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
               key={idx}
               variant={"grey"}
               size="xl"
-              onClick={() => soundEnabled && playClickSound()}
+              onClick={() => {
+                soundEnabled && playClickSound();
+                setSelectedUser(user);
+              }}
               className={cn(
                 "w-full justify-start gap-4 my-1",
-                selectedUser.email === user.email && "bg-muted dark hover:text-white text-white shrink"
+                selectedUser?.email === user.email &&
+                  "bg-muted dark hover:text-white text-white shrink"
               )}
             >
               <Avatar className="flex justify-center items-center">
                 <AvatarImage
-                  src={user.image || "/user-placeholder.png"}
+                  src={user.image || "/avatars/user-placeholder.png"}
                   alt={"User image"}
                   className="w-10 h-10"
                 />
@@ -79,18 +92,18 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
             <div className="hidden md:flex gap-2 items-center">
               <Avatar className="flex justify-center items-center">
                 <AvatarImage
-                  src={"/user-placeholder.png"}
+                  src={user?.picture || "/avatars/user-placeholder.png"}
                   alt="avatar"
                   referrerPolicy="no-referrer"
                   className="w-8 h-8 border-2 border-white rounded-full"
                 />
               </Avatar>
-              <p className="font-bold">John Doe</p>
+              <p className="font-bold">{user?.given_name} {user?.family_name}</p>
             </div>
           )}
           <div className="flex">
             <LogoutLink>
-            <LogOut size={22} cursor="pointer" />
+              <LogOut size={22} cursor="pointer" />
             </LogoutLink>
           </div>
         </div>

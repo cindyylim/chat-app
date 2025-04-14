@@ -1,14 +1,26 @@
 import ChatTopbar from "./ChatTopbar";
 import MessageList from "./MessageList";
 import ChatBottomBar from "./ChatBottomBar";
-import { USERS } from "@/db/dummy";
+import {useSelectedUser} from "@/store/useSelectedUser";
+import { useEffect } from "react";
 
 const MessageContainer = () => {
-  
+  const {setSelectedUser} = useSelectedUser();
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSelectedUser(null);
+      }
+    }
+    document.addEventListener("keydown", handleEscape)
+    return () => {
+      document.removeEventListener("keydown", handleEscape)
+    }
+  }, [setSelectedUser])
   return (
-    <div className="flex flex-col justify-between w-full h-full">
+    <div className="flex flex-col justify-between w-full h-[calc(100vh-2rem)]">
       <ChatTopbar />
-      <div className="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col">
+      <div className="w-full overflow-y-auto overflow-x-hidden flex-1 flex flex-col">
         <MessageList />
         <ChatBottomBar />
       </div>
