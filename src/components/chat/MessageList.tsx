@@ -1,16 +1,37 @@
-import { messages } from "@/db/dummy";
+import { Message } from "@/db/dummy";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { USERS } from "@/db/dummy";
 import { Avatar, AvatarImage } from "../ui/avatar";
+import { useSelectedUser } from "@/store/useSelectedUser";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { useQuery } from "@tanstack/react-query";
+import { getMessages } from "@/actions/message.actions";
+import { useRef, useEffect} from "react";
 
 const MessageList = () => {
-  const currentUser = USERS[1];
-  const selectedUser = USERS[0];
+  const {selectedUser} = useSelectedUser();
+  const {user: currentUser, isLoading: isUserLoading} = useKindeBrowserClient();
+  const {data: messages = [], isLoading} = useQuery<Message[]>({
+    queryKey: ["messages", selectedUser?.id],
+    queryFn: async() => {
+      if (selectedUser && currentUser) {
+        return await getMessages(selectedUser?.id, currentUser?.id);
+      }
+      return [];
+    },
+    enabled: !!selectedUser && !!currentUser && !isUserLoading
+  })
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
+    }
+  }, [messages])
   return (
-    <div className="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col">
+    <div ref={messageContainerRef} className="w-full overflow-y-auto overflow-x-hidden h-full flex flex-col">
       <AnimatePresence>
-        {messages.map((message, index) => (
+        {messages?.map((message: Message, index: number) => (
           <motion.div
             key={index}
             layout
@@ -28,17 +49,17 @@ const MessageList = () => {
             style={{ originX: 0.5, originY: 0.5 }}
             className={cn(
               "flex flex-col gap-2 p-4 whitespace-pre-wrap",
-              message.senderId === currentUser.id ? "items-end" : "items-start"
+              message.senderId === currentUser?.id ? "items-end" : "items-start"
             )}
           >
             <div className={cn(
               "flex items-center gap-3",
-              message.senderId === currentUser.id ? "flex-row-reverse" : "flex-row"
+              message.senderId === currentUser?.id ? "flex-row-reverse" : "flex-row"
             )}>
-              {message.senderId === selectedUser.id && (
+              {message.senderId === selectedUser?.id && (
                 <Avatar className="flex justify-center items-center">
                   <AvatarImage
-                    src={selectedUser.image || "/avatars/user-placeholder.png"}
+                    src={selectedUser?.image || "/avatars/user-placeholder.png"}
                     alt="User Image"
                     className="border-2 border-white rounded-full"
                   />
@@ -55,10 +76,10 @@ const MessageList = () => {
                   className="border p-2 rounded h-40 md:h-52 object-cover"
                 />
               )}
-              {message.senderId === currentUser.id && (
+              {message.senderId === currentUser?.id && (
                 <Avatar className="flex justify-center items-center">
                   <AvatarImage
-                    src={currentUser.image || "/avatars/user-placeholder.png"}
+                    src={currentUser?.picture || "/avatars/user-placeholder.png"}
                     alt="User Image"
                     className="border-2 border-white rounded-full"
                   />
