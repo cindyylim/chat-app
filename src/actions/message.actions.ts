@@ -2,6 +2,7 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import redis from "@/db/db";
 import { Message } from "@/db/dummy";
+import { pusherServer } from "@/lib/pusher";
 
 type sendMessageActionArgs = {
     content: string;
@@ -42,6 +43,11 @@ await redis.hset(messageId, {
 })
 
 await redis.zadd(`${conversationId}:messages`, {score: timestamp, member: JSON.stringify(messageId)})
+
+const channelName = `${senderId}__${receiverId}`.split("__").sort().join("__");
+await pusherServer?.trigger(channelName, "newMessage", {
+    message: {senderId, content, timestamp, messageType},
+})
 return {success: true, conversationId, messageId};
 
 }

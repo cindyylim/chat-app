@@ -1,21 +1,30 @@
 import { ImageIcon, Loader, SendHorizontal, ThumbsUp } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Textarea } from "../ui/textarea";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import EmojiPicker from "./EmojiPicker";
 import { Button } from "../ui/button";
 import { usePreferences } from "@/store/usePreferences";
 import { useSound } from "use-sound";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { sendMessageAction } from "@/actions/message.actions";
 import { useSelectedUser } from "@/store/useSelectedUser";
+import { CldUploadWidget } from 'next-cloudinary';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { CloudinaryUploadWidgetInfo } from "next-cloudinary";
+import Image from "next/image";
+import { pusherClient } from "@/lib/pusher";
+import { Message } from "../../db/dummy";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
 const ChatBottomBar = () => {
   const [message, setMessage] = useState("");
   const { selectedUser } = useSelectedUser();
+  const queryClient = useQueryClient();
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: sendMessageAction,
   });
+  const {user: currentUser} = useKindeBrowserClient();
   const handleSendMessage = () => {
     if (message.trim()) {
       sendMessage({
@@ -42,20 +51,64 @@ const ChatBottomBar = () => {
   const [playSound2] = useSound("/sounds/keystroke2.mp3");
   const [playSound3] = useSound("/sounds/keystroke3.mp3");
   const [playSound4] = useSound("/sounds/keystroke4.mp3");
+  const [playNotificationSound] = useSound("/sounds/notification.mp3");
   const playSoundFunctions = [playSound1, playSound2, playSound3, playSound4];
   const playRandomKeyStrokeSound = () => {
     const randomIndex = Math.floor(Math.random() * playSoundFunctions.length);
     soundEnabled && playSoundFunctions[randomIndex]();
   };
   const { soundEnabled } = usePreferences();
-
+  const [imgUrl, setImgUrl] = useState("");
+  useEffect(() => {
+    const channelName = `${currentUser?.id}__${selectedUser?.id}`.split("__").sort().join("__");
+    const channel = pusherClient.subscribe(channelName);
+    const handleNewMessage = (data: {message: Message}) => {
+      queryClient.setQueryData(["messages", selectedUser?.id], (oldMessages: Message[]) => {
+        return [...oldMessages, data.message];
+      })
+      if (soundEnabled && data.message.senderId !== currentUser?.id) {
+        playNotificationSound();
+      }
+    }
+    channel.bind("newMessage", handleNewMessage);
+    return () => {
+      channel.unbind("newMessage", handleNewMessage)
+      pusherClient.unsubscribe(channelName);
+    }
+  }, [currentUser?.id, selectedUser?.id, queryClient]);
   return (
     <div className="p-2 flex justify-between w-full items-center gap-2">
       {!message.trim() && (
-        <ImageIcon size={20} className="cursor-pointer text-muted-foreground" />
+        <CldUploadWidget signatureEndpoint="/api/sign-cloudinary-params" onSuccess={(result, {widget})=> {
+          setImgUrl((result.info as CloudinaryUploadWidgetInfo).secure_url);
+          widget.close();
+        }}>
+          {({ open }) => {
+            return (
+              <ImageIcon size={20} className="cursor-pointer text-muted-foreground" onClick={() => open()} />
+            );
+          }}
+        </CldUploadWidget>
       )}
+      <Dialog open={!!imgUrl}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Image Preview</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center items-center relative h-96 w-full mx-auto">
+            <Image src={imgUrl} alt="Image Preview" fill className="object-contain"/>
+          </div>
+          <DialogFooter>
+            <Button type="submit" onClick={() => {
+              sendMessage({content: imgUrl, messageType: "image", receiverId: selectedUser?.id!})
+              setImgUrl("")
+              }}>Send</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <AnimatePresence>
         <motion.div
+          key="message-input"
           layout
           initial={{ opacity: 0, scale: 1 }}
           animate={{ opacity: 1, scale: 1 }}
