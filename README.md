@@ -1,24 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Chat Application
+
+A modern, real-time chat application built with Next.js, featuring authentication, real-time messaging, and a beautiful UI.
+
+## Features
+
+- 🔐 Authentication with Kinde
+- 💬 Real-time messaging using Pusher
+- 🎨 Modern UI with dark/light mode
+- 🔊 Sound effects and notifications
+- 😀 Emoji picker
+- 📸 Image sharing with Cloudinary
+- 🔄 Real-time message updates
+- 📱 Responsive design
+- 🎯 User preferences (sound, theme)
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand, TanStack Query
+- **Authentication**: Kinde
+- **Real-time**: Pusher
+- **Database**: Upstash Redis
+- **Image Storage**: Cloudinary
+- **UI Components**: Radix UI
+- **Animations**: Framer Motion
+- **Sound Effects**: use-sound
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+3. Create a `.env` file with the following variables:
+   ```
+   # Kinde Auth
+   KINDE_CLIENT_ID=
+   KINDE_CLIENT_SECRET=
+   KINDE_ISSUER_URL=
+   KINDE_SITE_URL=
+   KINDE_POST_LOGIN_REDIRECT_URL=
+   KINDE_POST_LOGOUT_REDIRECT_URL=
+
+   # Pusher
+   PUSHER_APP_ID=
+   PUSHER_APP_KEY=
+   PUSHER_APP_SECRET=
+   PUSHER_APP_CLUSTER=
+   NEXT_PUBLIC_PUSHER_APP_KEY=
+   NEXT_PUBLIC_PUSHER_APP_CLUSTER=
+
+   # Redis
+   UPSTASH_REDIS_REST_URL=
+   UPSTASH_REDIS_REST_TOKEN=
+
+   # Cloudinary
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+   NEXT_PUBLIC_CLOUDINARY_API_KEY=
+   CLOUDINARY_API_SECRET=
+   ```
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Project Structure
+
+```
+src/
+├── actions/         # Server actions
+├── app/            # Next.js app router
+├── components/     # React components
+│   ├── chat/       # Chat-related components
+│   ├── providers/  # Context providers
+│   └── ui/         # UI components
+├── db/            # Database utilities
+├── lib/           # Utility functions
+└── store/         # Zustand stores
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Contributing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Learn More
 
