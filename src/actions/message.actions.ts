@@ -6,10 +6,10 @@ import { pusherServer } from "@/lib/pusher";
 
 type sendMessageActionArgs = {
     content: string;
-    receivedId: string;
+    receiverId: string;
     messageType: "text" | "image";
 }
-export async function sendMessageAction({content, messageType, receiverId}) {
+export async function sendMessageAction({content, messageType, receiverId}: sendMessageActionArgs) {
 const {getUser} = getKindeServerSession();
 const user = await getUser();
 
