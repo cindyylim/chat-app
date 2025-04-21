@@ -6,4 +6,4 @@ export default function middleware(req: any) {
 
 export const config = {
   matcher: ["/api/auth/callback", "/auth/callback"],
-}; 
+};
