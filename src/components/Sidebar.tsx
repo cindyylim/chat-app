@@ -20,7 +20,7 @@ const Sidebar = ({ isCollapsed, users }: SidebarProps) => {
   const [playClickSound] = useSound("/sounds/mouse-click.mp3");
   const { soundEnabled } = usePreferences();
   const { selectedUser, setSelectedUser } = useSelectedUser();
-  const {user} = useKindeBrowserClient();
+  const { user } = useKindeBrowserClient();
 
   return (
     <div className="relative flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2 max-h-full overflow-auto bg-background">
@@ -98,7 +98,9 @@ const Sidebar = ({ isCollapsed, users }: SidebarProps) => {
                   className="w-8 h-8 border-2 border-white rounded-full"
                 />
               </Avatar>
-              <p className="font-bold">{user?.given_name} {user?.family_name}</p>
+              <p className="font-bold">
+                {user?.given_name} {user?.family_name}
+              </p>
             </div>
           )}
           <div className="flex">

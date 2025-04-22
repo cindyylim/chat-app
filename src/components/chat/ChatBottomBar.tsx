@@ -9,8 +9,14 @@ import { useSound } from "use-sound";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { sendMessageAction } from "@/actions/message.actions";
 import { useSelectedUser } from "@/store/useSelectedUser";
-import { CldUploadWidget } from 'next-cloudinary';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
+import { CldUploadWidget } from "next-cloudinary";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../ui/dialog";
 import { CloudinaryUploadWidgetInfo } from "next-cloudinary";
 import Image from "next/image";
 import { pusherClient } from "@/lib/pusher";
@@ -24,7 +30,7 @@ const ChatBottomBar = () => {
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: sendMessageAction,
   });
-  const {user: currentUser} = useKindeBrowserClient();
+  const { user: currentUser } = useKindeBrowserClient();
   const handleSendMessage = () => {
     if (message.trim()) {
       sendMessage({
@@ -60,32 +66,45 @@ const ChatBottomBar = () => {
   const { soundEnabled } = usePreferences();
   const [imgUrl, setImgUrl] = useState("");
   useEffect(() => {
-    const channelName = `${currentUser?.id}__${selectedUser?.id}`.split("__").sort().join("__");
+    const channelName = `${currentUser?.id}__${selectedUser?.id}`
+      .split("__")
+      .sort()
+      .join("__");
     const channel = pusherClient.subscribe(channelName);
-    const handleNewMessage = (data: {message: Message}) => {
-      queryClient.setQueryData(["messages", selectedUser?.id], (oldMessages: Message[]) => {
-        return [...oldMessages, data.message];
-      })
+    const handleNewMessage = (data: { message: Message }) => {
+      queryClient.setQueryData(
+        ["messages", selectedUser?.id],
+        (oldMessages: Message[]) => {
+          return [...oldMessages, data.message];
+        }
+      );
       if (soundEnabled && data.message.senderId !== currentUser?.id) {
         playNotificationSound();
       }
-    }
+    };
     channel.bind("newMessage", handleNewMessage);
     return () => {
-      channel.unbind("newMessage", handleNewMessage)
+      channel.unbind("newMessage", handleNewMessage);
       pusherClient.unsubscribe(channelName);
-    }
+    };
   }, [currentUser?.id, selectedUser?.id, queryClient]);
   return (
     <div className="p-2 flex justify-between w-full items-center gap-2">
       {!message.trim() && (
-        <CldUploadWidget signatureEndpoint="/api/sign-cloudinary-params" onSuccess={(result, {widget})=> {
-          setImgUrl((result.info as CloudinaryUploadWidgetInfo).secure_url);
-          widget.close();
-        }}>
+        <CldUploadWidget
+          signatureEndpoint="/api/sign-cloudinary-params"
+          onSuccess={(result, { widget }) => {
+            setImgUrl((result.info as CloudinaryUploadWidgetInfo).secure_url);
+            widget.close();
+          }}
+        >
           {({ open }) => {
             return (
-              <ImageIcon size={20} className="cursor-pointer text-muted-foreground" onClick={() => open()} />
+              <ImageIcon
+                size={20}
+                className="cursor-pointer text-muted-foreground"
+                onClick={() => open()}
+              />
             );
           }}
         </CldUploadWidget>
@@ -96,13 +115,27 @@ const ChatBottomBar = () => {
             <DialogTitle>Image Preview</DialogTitle>
           </DialogHeader>
           <div className="flex justify-center items-center relative h-96 w-full mx-auto">
-            <Image src={imgUrl} alt="Image Preview" fill className="object-contain"/>
+            <Image
+              src={imgUrl}
+              alt="Image Preview"
+              fill
+              className="object-contain"
+            />
           </div>
           <DialogFooter>
-            <Button type="submit" onClick={() => {
-              sendMessage({content: imgUrl, messageType: "image", receiverId: selectedUser?.id!})
-              setImgUrl("")
-              }}>Send</Button>
+            <Button
+              type="submit"
+              onClick={() => {
+                sendMessage({
+                  content: imgUrl,
+                  messageType: "image",
+                  receiverId: selectedUser?.id!,
+                });
+                setImgUrl("");
+              }}
+            >
+              Send
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -163,8 +196,15 @@ const ChatBottomBar = () => {
               });
             }}
           >
-            {!isPending && <ThumbsUp size={20} className="text-muted-foreground" />}
-            {isPending && <Loader size={20} className="text-muted-foreground animate-spin"/>}
+            {!isPending && (
+              <ThumbsUp size={20} className="text-muted-foreground" />
+            )}
+            {isPending && (
+              <Loader
+                size={20}
+                className="text-muted-foreground animate-spin"
+              />
+            )}
           </Button>
         )}
       </AnimatePresence>

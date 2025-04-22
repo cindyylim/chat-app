@@ -51,9 +51,9 @@ const PreferencesTab = () => {
         variant={theme === "dark" ? "default" : "outline"}
         size={"icon"}
         onClick={() => {
-            setTheme("dark");
-            soundEnabled && playMouseClick();
-          }}
+          setTheme("dark");
+          soundEnabled && playMouseClick();
+        }}
       >
         <MoonIcon className="size-[1.2rem]" />
       </Button>
@@ -61,8 +61,8 @@ const PreferencesTab = () => {
         variant="outline"
         size={"icon"}
         onClick={() => {
-            setSoundEnabled(!soundEnabled)
-            soundEnabled ? playSoundOff() : playSoundOn()
+          setSoundEnabled(!soundEnabled);
+          soundEnabled ? playSoundOff() : playSoundOn();
         }}
       >
         {soundEnabled ? (
