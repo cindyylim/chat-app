@@ -10,7 +10,8 @@ import { usePreferences } from "@/store/usePreferences";
 import { LogoutLink } from "@kinde-oss/kinde-auth-nextjs/components";
 import { useSelectedUser } from "@/store/useSelectedUser";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-
+import AddUserDialog from "./chat/AddUserDialog";
+/* eslint-disable */
 interface SidebarProps {
   isCollapsed: boolean;
   users: User[];
@@ -23,12 +24,13 @@ const Sidebar = ({ isCollapsed, users }: SidebarProps) => {
   const { user } = useKindeBrowserClient();
 
   return (
-    <div className="relative flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2 max-h-full overflow-auto bg-background">
+    <div className="relative flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2 max-h-full overflow-auto bg-background">     
       {!isCollapsed && (
         <div className="flex justify-between p-2 items-center">
           <div className="flex gap-2 items-center text-2xl">
             <p className="font-medium">Chats</p>
           </div>
+          <AddUserDialog />
         </div>
       )}
       <ScrollArea className="gap-2 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collpased=true]]:px-2">

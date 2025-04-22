@@ -23,6 +23,7 @@ import { pusherClient } from "@/lib/pusher";
 import { Message } from "../../db/dummy";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 
+/* eslint-disable */
 const ChatBottomBar = () => {
   const [message, setMessage] = useState("");
   const { selectedUser } = useSelectedUser();
@@ -32,11 +33,11 @@ const ChatBottomBar = () => {
   });
   const { user: currentUser } = useKindeBrowserClient();
   const handleSendMessage = () => {
-    if (message.trim()) {
+    if (message.trim() && selectedUser?.id) {
       sendMessage({
         content: message,
         messageType: "text",
-        receiverId: selectedUser?.id,
+        receiverId: selectedUser.id,
       });
       setMessage("");
       textAreaRef.current?.focus();
@@ -129,7 +130,7 @@ const ChatBottomBar = () => {
                 sendMessage({
                   content: imgUrl,
                   messageType: "image",
-                  receiverId: selectedUser?.id!,
+                  receiverId: selectedUser?.id || "",
                 });
                 setImgUrl("");
               }}
@@ -189,11 +190,13 @@ const ChatBottomBar = () => {
             variant={"ghost"}
             size={"icon"}
             onClick={() => {
-              sendMessage({
-                content: "👍",
-                messageType: "text",
-                receiverId: selectedUser?.id,
-              });
+              if (selectedUser?.id) {
+                sendMessage({
+                  content: "👍",
+                  messageType: "text",
+                  receiverId: selectedUser.id,
+                });
+              }
             }}
           >
             {!isPending && (

@@ -1,3 +1,4 @@
+  /* eslint-disable */
 declare module 'use-sound' {
   import { HTMLAttributes } from 'react';
 

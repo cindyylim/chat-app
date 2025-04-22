@@ -1,4 +1,3 @@
-import Image from "next/image";
 import PreferencesTab from "@/components/PreferencesTab";
 import { cookies } from "next/headers";
 import ChatLayout from "@/components/chat/ChatLayout";

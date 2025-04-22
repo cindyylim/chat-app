@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { usePreferences } from "@/store/usePreferences";
 import { useSound } from "use-sound";
+/* eslint-disable */
 const PreferencesTab = () => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);

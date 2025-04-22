@@ -12,7 +12,7 @@ const MessageList = () => {
   const { selectedUser } = useSelectedUser();
   const { user: currentUser, isLoading: isUserLoading } =
     useKindeBrowserClient();
-  const { data: messages = [], isLoading } = useQuery<Message[]>({
+  const { data: messages = [] } = useQuery<Message[]>({
     queryKey: ["messages", selectedUser?.id],
     queryFn: async () => {
       if (selectedUser && currentUser) {
