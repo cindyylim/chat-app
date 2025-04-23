@@ -53,10 +53,19 @@ export async function sendMessageAction({
     member: JSON.stringify(messageId),
   });
 
-  const channelName = `${senderId}__${receiverId}`
-    .split("__")
-    .sort()
-    .join("__");
+  // Handle Pusher channel based on conversation type
+  let channelName: string;
+  if (receiverId.startsWith('group:')) {
+    // Group chat - replace ':' with '_' for Pusher compatibility
+    channelName = receiverId.replace(':', '_');
+  } else {
+    // One-on-one chat
+    channelName = `${senderId}__${receiverId}`
+      .split("__")
+      .sort()
+      .join("__");
+  }
+
   await pusherServer?.trigger(channelName, "newMessage", {
     message: { senderId, content, timestamp, messageType },
   });
@@ -67,9 +76,17 @@ export async function getMessages(
   selectedUserId: string,
   currentUserId: string
 ) {
-  const conversationId = `conversation:${[currentUserId, selectedUserId]
-    .sort()
-    .join(":")}`;
+  let conversationId: string;
+  if (selectedUserId.startsWith('group:')) {
+    // Group chat
+    conversationId = selectedUserId;
+  } else {
+    // One-on-one chat
+    conversationId = `conversation:${[currentUserId, selectedUserId]
+      .sort()
+      .join(":")}`;
+  }
+
   const messageIds = await redis.zrange(`${conversationId}:messages`, 0, -1);
   if (messageIds.length === 0) {
     return [];

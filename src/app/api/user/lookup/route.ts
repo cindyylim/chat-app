@@ -1,45 +1,65 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { NextResponse } from "next/server";
 import redis from "@/db/db";
+import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
     const { getUser } = getKindeServerSession();
     const currentUser = await getUser();
-    
+
     if (!currentUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { email } = await request.json();
+    const { email } = await req.json();
+
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Search for user by email in Redis
+    // Get all users from Redis
     const userKeys = await redis.keys("user:*");
-    if (!userKeys || !Array.isArray(userKeys)) {
-      return NextResponse.json({ error: "No users found" }, { status: 404 });
+    if (!userKeys) {
+      return NextResponse.json({ users: [] });
     }
 
-    for (const key of userKeys) {
-      try {
-        const userData = await redis.hgetall(key);
-        if (!userData || typeof userData !== 'object') {
-          continue;
+    // Get all users in parallel
+    const users = await Promise.all(
+      userKeys.map(async (key) => {
+        try {
+          // Skip keys that contain 'conversations' as they're not user data
+          if (key.includes('conversations')) {
+            return null;
+          }
+          
+          const user = await redis.hgetall(key);
+          // Only return valid user objects
+          if (user && typeof user === 'object' && 'id' in user && 'email' in user) {
+            return user;
+          }
+          return null;
+        } catch (err) {
+          console.error(`Error fetching user ${key}:`, err);
+          return null;
         }
-        if (userData.email === email) {
-          return NextResponse.json({ user: userData });
-        }
-      } catch (err) {
-        console.error(`Error fetching user data for key ${key}:`, err);
-        continue;
-      }
-    }
+      })
+    );
 
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    // Filter users by email and exclude current user
+    const matchingUsers = users
+      .filter((user): user is Record<string, string> => 
+        user !== null && typeof user === 'object' && 'id' in user && user.id !== currentUser.id
+      )
+      .filter(user => 
+        user.email.toLowerCase().includes(email.toLowerCase())
+      );
+
+    return NextResponse.json({ users: matchingUsers });
   } catch (error) {
-    console.error("User lookup error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    console.error("Error looking up users:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 } 

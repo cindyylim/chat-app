@@ -67,10 +67,17 @@ const ChatBottomBar = () => {
   const { soundEnabled } = usePreferences();
   const [imgUrl, setImgUrl] = useState("");
   useEffect(() => {
-    const channelName = `${currentUser?.id}__${selectedUser?.id}`
-      .split("__")
-      .sort()
-      .join("__");
+    let channelName: string;
+    if (selectedUser?.id?.startsWith('group:')) {
+      // Group chat - replace ':' with '_' for Pusher compatibility
+      channelName = selectedUser.id.replace(':', '_');
+    } else {
+      // One-on-one chat
+      channelName = `${currentUser?.id}__${selectedUser?.id}`
+        .split("__")
+        .sort()
+        .join("__");
+    }
     const channel = pusherClient.subscribe(channelName);
     const handleNewMessage = (data: { message: Message }) => {
       queryClient.setQueryData(

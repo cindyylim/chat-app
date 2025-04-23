@@ -11,17 +11,12 @@ export async function checkAuthStatus() {
     if (user) {
       const userId = `user:${user.id}`;
       const existingUser = await redis.hgetall(userId);
-
-      if (!existingUser || Object.keys(existingUser).length === 0) {
-        const imgIsNull = user.picture?.includes("gravatar");
-        const image = imgIsNull ? "" : user.picture || "";
+      if (existingUser) {
         const userData = {
-          id: user.id || "",
-          email: user.email || "",
-          name:
-            `${user.given_name || ""} ${user.family_name || ""}`.trim() ||
-            "Anonymous",
-          image: image,
+          id: existingUser.id || "",
+          email: existingUser.email || "",
+          name: existingUser.name || "Anonymous",
+          image: existingUser.image || "",
         };
         await redis.hset(userId, userData);
       }

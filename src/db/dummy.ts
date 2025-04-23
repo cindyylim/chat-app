@@ -12,6 +12,15 @@ export interface User {
   image: string;
 }
 
+export interface Group {
+  id: string;
+  name: string;
+  creatorId: string;
+  members: string[];
+  image?: string;
+  createdAt: number;
+}
+
 export const USERS = [
   {
     id: "2",

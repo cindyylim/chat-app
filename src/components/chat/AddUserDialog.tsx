@@ -39,9 +39,13 @@ export default function AddUserDialog() {
         return;
       }
 
-      // Set the found user as the selected user
-      setSelectedUser(data.user as User);
-      setEmail("");
+      // Set the first found user as the selected user
+      if (data.users && data.users.length > 0) {
+        setSelectedUser(data.users[0] as User);
+        setEmail("");
+      } else {
+        setError("No user found with this email");
+      }
     } catch (err) {
       setError("An error occurred while searching for the user " + err);
     } finally {
