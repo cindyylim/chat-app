@@ -11,14 +11,22 @@ export async function checkAuthStatus() {
     if (user) {
       const userId = `user:${user.id}`;
       const existingUser = await redis.hgetall(userId);
-      if (existingUser) {
-        const userData = {
-          id: existingUser.id || "",
-          email: existingUser.email || "",
-          name: existingUser.name || "Anonymous",
-          image: existingUser.image || "",
-        };
-        await redis.hset(userId, userData);
+      
+      const userData = {
+        id: user.id,
+        email: user.email || "",
+        name: user.given_name && user.family_name 
+          ? `${user.given_name} ${user.family_name}`
+          : user.email || "Anonymous",
+        image: user.picture || "",
+      };
+
+      // Always update the user data in Redis
+      await redis.hset(userId, userData);
+
+      // If this is a new user, add them to the users set
+      if (!existingUser || Object.keys(existingUser).length === 0) {
+        console.log("New user created in Redis:", userData);
       }
     }
 

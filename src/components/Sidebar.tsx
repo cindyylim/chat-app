@@ -13,19 +13,21 @@ import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import AddUserDialog from "./chat/AddUserDialog";
 import CreateGroupDialog from "./chat/CreateGroupDialog";
 import { useEffect, useState } from "react";
+import { useUsers } from "@/hooks/useUsers";
+import PreferencesTab from "./PreferencesTab";
 
 /* eslint-disable */
 interface SidebarProps {
   isCollapsed: boolean;
-  users: User[];
 }
 
-const Sidebar = ({ isCollapsed, users }: SidebarProps) => {
+const Sidebar = ({ isCollapsed }: SidebarProps) => {
   const [playClickSound] = useSound("/sounds/mouse-click.mp3");
   const { soundEnabled } = usePreferences();
   const { selectedUser, setSelectedUser } = useSelectedUser();
   const { user: currentUser } = useKindeBrowserClient();
   const [groups, setGroups] = useState<Group[]>([]);
+  const { data: users = [] } = useUsers();
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -64,15 +66,18 @@ const Sidebar = ({ isCollapsed, users }: SidebarProps) => {
   return (
     <div className="relative flex flex-col h-full gap-4 p-2 data-[collapsed=true]:p-2 max-h-full overflow-auto bg-background">     
       {!isCollapsed && (
-        <div className="flex justify-between p-2 items-center">
-          <div className="flex gap-2 items-center text-2xl">
-            <Users className="h-6 w-6" />
-            <span>Users</span>
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-between p-2 items-center">
+            <div className="flex gap-2 items-center text-2xl">
+              <Users className="h-6 w-6" />
+              <span>Users</span>
+            </div>
+            <div className="flex gap-2">
+              <AddUserDialog />
+              <CreateGroupDialog />
+            </div>
           </div>
-          <div className="flex gap-2">
-            <AddUserDialog />
-            <CreateGroupDialog />
-          </div>
+          <PreferencesTab />
         </div>
       )}
       <ScrollArea className="gap-2 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collpased=true]]:px-2">

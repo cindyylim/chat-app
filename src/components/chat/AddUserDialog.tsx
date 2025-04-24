@@ -7,12 +7,15 @@ import { Input } from "../ui/input/index";
 import { UserPlus } from "lucide-react";
 import { useSelectedUser } from "@/store/useSelectedUser";
 import { User } from "@/db/dummy";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AddUserDialog() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
   const { setSelectedUser } = useSelectedUser();
+  const queryClient = useQueryClient();
 
   const handleSearch = async () => {
     if (!email) {
@@ -41,8 +44,15 @@ export default function AddUserDialog() {
 
       // Set the first found user as the selected user
       if (data.users && data.users.length > 0) {
-        setSelectedUser(data.users[0] as User);
+        const newUser = data.users[0] as User;
+        setSelectedUser(newUser);
         setEmail("");
+        
+        // Invalidate the users query to refresh the sidebar
+        await queryClient.invalidateQueries({ queryKey: ["users"] });
+        
+        // Close the dialog
+        setOpen(false);
       } else {
         setError("No user found with this email");
       }
@@ -54,7 +64,7 @@ export default function AddUserDialog() {
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon">
           <UserPlus className="h-4 w-4" />

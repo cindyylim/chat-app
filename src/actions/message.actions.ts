@@ -98,3 +98,43 @@ export async function getMessages(
   const messages = (await pipeline.exec()) as Message[];
   return messages;
 }
+
+export async function getUsersWithConversations() {
+  const { getUser } = getKindeServerSession();
+  const currentUser = await getUser();
+
+  if (!currentUser) {
+    return [];
+  }
+
+  // Get all conversations for the current user
+  const conversationIds = await redis.smembers(`user:${currentUser.id}:conversations`);
+  
+  // Get all participants from these conversations
+  const participants = new Set<string>();
+  for (const conversationId of conversationIds) {
+    const conversation = await redis.hgetall(conversationId);
+    if (conversation && typeof conversation === 'object') {
+      const participant1 = conversation.participant1 as string;
+      const participant2 = conversation.participant2 as string;
+      
+      if (participant1 && participant1 !== currentUser.id) {
+        participants.add(participant1);
+      }
+      if (participant2 && participant2 !== currentUser.id) {
+        participants.add(participant2);
+      }
+    }
+  }
+
+  // Get user details for all participants
+  const users = [];
+  for (const participantId of participants) {
+    const user = await redis.hgetall(`user:${participantId}`);
+    if (user && typeof user === 'object') {
+      users.push(user);
+    }
+  }
+
+  return users;
+}

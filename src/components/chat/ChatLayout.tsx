@@ -8,58 +8,48 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import Sidebar from "../Sidebar";
 import MessageContainer from "./MessageContainer";
-import { User } from "@/db/dummy";
 import { useSelectedUser } from "@/store/useSelectedUser";
 
 interface ChatLayoutProps {
   defaultLayout: number[] | undefined;
-  users: User[];
 }
 
-const ChatLayout = ({ defaultLayout = [320, 480], users }: ChatLayoutProps) => {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+const ChatLayout = ({ defaultLayout = [320, 480] }: ChatLayoutProps) => {
   const { selectedUser } = useSelectedUser();
-  useEffect(() => {
-    const checkScreenWidth = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    checkScreenWidth();
-    window.addEventListener("resize", checkScreenWidth);
-    return () => window.removeEventListener("resize", checkScreenWidth);
-  }, []);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <ResizablePanelGroup
       direction="horizontal"
-      className="h-full items-stretch bg-background rounded-lg"
       onLayout={(sizes: number[]) => {
         document.cookie = `react-resizable-panels:layout=${JSON.stringify(
           sizes
         )}`;
       }}
+      className="h-full items-stretch"
     >
       <ResizablePanel
         defaultSize={defaultLayout[0]}
-        collapsedSize={8}
         collapsible={true}
-        minSize={isMobile ? 0 : 24}
-        maxSize={isMobile ? 8 : 30}
+        minSize={15}
+        maxSize={20}
+        collapsedSize={4}
         onCollapse={() => {
           setIsCollapsed(true);
-          document.cookie = `react-resizable-panels:collapsed=${true}`;
+          document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
+            true
+          )}`;
         }}
         onExpand={() => {
           setIsCollapsed(false);
-          document.cookie = `react-resizable-panels:collapsed=${false}`;
+          document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
+            false
+          )}`;
         }}
-        className={cn(
-          isCollapsed && "min-w-[80px] transition-all duration-300 ease-in-out"
-        )}
       >
-        <Sidebar isCollapsed={isCollapsed} users={users} />
+        <Sidebar isCollapsed={isCollapsed} />
       </ResizablePanel>
-      <ResizableHandle withHandle />
+      <ResizableHandle />
       <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>
         {!selectedUser && (
           <div className="flex justify-center items-center h-full w-full px-10">

@@ -8,6 +8,7 @@ import { Users } from "lucide-react";
 import { useSelectedUser } from "@/store/useSelectedUser";
 import { User } from "@/db/dummy";
 import SelectMembersDialog from "./SelectMembersDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CreateGroupDialog() {
   const [name, setName] = useState("");
@@ -15,6 +16,7 @@ export default function CreateGroupDialog() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { setSelectedUser } = useSelectedUser();
+  const queryClient = useQueryClient();
 
   const handleCreate = async () => {
     if (!name || members.length === 0) {
@@ -45,6 +47,9 @@ export default function CreateGroupDialog() {
       setSelectedUser(data.group as User);
       setName("");
       setMembers([]);
+      
+      // Invalidate the users query to refresh the sidebar
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
     } catch (err) {
       setError("An error occurred while creating the group");
     } finally {
