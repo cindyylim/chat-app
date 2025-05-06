@@ -70,21 +70,6 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-## Project Structure
-
-```
-src/
-├── actions/         # Server actions
-├── app/            # Next.js app router
-├── components/     # React components
-│   ├── chat/       # Chat-related components
-│   ├── providers/  # Context providers
-│   └── ui/         # UI components
-├── db/            # Database utilities
-├── lib/           # Utility functions
-└── store/         # Zustand stores
-```
-
 ## Contributing
 
 1. Fork the repository
