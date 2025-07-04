@@ -14,6 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "./ui/dialog";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 
 const Navbar = () => {
     const { user: currentUser } = useKindeBrowserClient();
@@ -22,6 +23,21 @@ const Navbar = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const { setSelectedUser } = useSelectedUser();
+    const [isOnline, setIsOnline] = useState(false);
+
+    useEffect(() => {
+        if (!currentUser?.id) return;
+        const fetchStatus = async () => {
+            const res = await fetch(`/api/user/status?userId=${currentUser.id}`);
+            const data = await res.json();
+            setIsOnline(data.online);
+        };
+        fetchStatus();
+        const interval = setInterval(fetchStatus, 10000); // poll every 10s
+        return () => clearInterval(interval);
+    }, [currentUser?.id]);
+
+    useOnlineStatus(currentUser?.id);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -110,17 +126,23 @@ const Navbar = () => {
                     </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
+                    <div className="relative">
                         <Avatar>
                             <AvatarImage src={currentUser?.picture || ""} />
                             <AvatarFallback>
                                 {currentUser?.given_name?.[0] || "Unknown"}
                             </AvatarFallback>
                         </Avatar>
-                        <span className="text-sm font-medium">
-                            {currentUser?.given_name || "Unknown"}
-                        </span>
+                        <span
+                            className={`absolute bottom-0 right-0 block w-3 h-3 rounded-full border-2 border-white ${
+                                isOnline ? "bg-green-500" : "bg-gray-400"
+                            }`}
+                            title={isOnline ? "Online" : "Offline"}
+                        />
                     </div>
+                    <span className="text-sm font-medium">
+                        {currentUser?.given_name || "Unknown"}
+                    </span>
                     <LogoutLink>
                         <Button variant="ghost">
                             Logout

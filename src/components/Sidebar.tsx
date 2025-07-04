@@ -1,9 +1,6 @@
 import { User, Group } from "@/db/dummy";
 import { ScrollArea } from "./ui/scroll-area";
-import { Tooltip, TooltipTrigger, TooltipProvider } from "./ui/tooltip";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
-import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
 import { LogOut, Users, Users2 } from "lucide-react";
 import { useSound } from "use-sound";
 import { usePreferences } from "@/store/usePreferences";
@@ -21,6 +18,43 @@ interface SidebarProps {
   isCollapsed: boolean;
 }
 
+function UserListItem({ user }: { user: User }) {
+  const [isOnline, setIsOnline] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchStatus = async () => {
+      const res = await fetch(`/api/user/status?userId=${user.id}`);
+      const data = await res.json();
+      if (mounted) setIsOnline(data.online);
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 10000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [user.id]);
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative">
+        <Avatar>
+          <AvatarImage src={user.image} />
+          <AvatarFallback>{user.name[0]}</AvatarFallback>
+        </Avatar>
+        <span
+          className={`absolute bottom-0 right-0 block w-3 h-3 rounded-full border-2 border-white ${
+            isOnline ? "bg-green-500" : "bg-gray-400"
+          }`}
+          title={isOnline ? "Online" : "Offline"}
+        />
+      </div>
+      <span>{user.name}</span>
+    </div>
+  );
+}
+
 const Sidebar = ({ isCollapsed }: SidebarProps) => {
   const [playClickSound] = useSound("/sounds/mouse-click.mp3");
   const { soundEnabled } = usePreferences();
@@ -28,6 +62,7 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
   const { user: currentUser } = useKindeBrowserClient();
   const [groups, setGroups] = useState<Group[]>([]);
   const { data: users = [] } = useUsers();
+  const [previews, setPreviews] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -44,6 +79,23 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
 
     fetchGroups();
   }, []);
+
+  useEffect(() => {
+    fetch("/api/conversations/last-messages")
+      .then(res => res.json())
+      .then(data => setPreviews(data.previews || []));
+  }, []);
+
+  // Helper to get preview for a user or group
+  const getPreview = (id: string) => {
+    const preview = previews.find(
+      p =>
+        p.conversation?.participant1 === id ||
+        p.conversation?.participant2 === id ||
+        p.conversationId === id // for groups
+    );
+    return preview?.lastMessage?.content || "";
+  };
 
   const getUserName = () => {
     if (!currentUser) return "";
@@ -82,50 +134,18 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
       )}
       <ScrollArea className="gap-2 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collpased=true]]:px-2">
         {/* Users Section */}
-        {users.map((user, idx) =>
-          isCollapsed ? (
-            <TooltipProvider key={idx}>
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <div onClick={() => handleUserClick(user)}>
-                    <Avatar className="my-1 flex justify-center items-center">
-                      <AvatarImage
-                        src={user.image || "/avatars/user-placeholder.png"}
-                        alt="User Image"
-                        className="border-2 border-white rounded-full w-10 h-10"
-                      />
-                      <AvatarFallback>{user.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <span className="sr-only">{user.name}</span>
-                  </div>
-                </TooltipTrigger>
-              </Tooltip>
-            </TooltipProvider>
-          ) : (
-            <Button
-              key={idx}
-              variant={"grey"}
-              size="xl"
-              onClick={() => handleUserClick(user)}
-              className={cn(
-                "w-full justify-start gap-4 my-1",
-                selectedUser?.id === user.id && "bg-muted shrink"
-              )}
-            >
-              <Avatar className="flex justify-center items-center">
-                <AvatarImage
-                  src={user.image || "/avatars/user-placeholder.png"}
-                  alt={"User image"}
-                  className="w-10 h-10"
-                />
-                <AvatarFallback>{user.name[0]}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col max-w-28">
-                <span>{user.name}</span>
-              </div>
-            </Button>
-          )
-        )}
+        {users.map(user => (
+          <div
+            key={user.id}
+            className={`cursor-pointer hover:bg-accent rounded ${selectedUser?.id === user.id ? "bg-muted" : ""}`}
+            onClick={() => handleUserClick(user)}
+          >
+            <UserListItem user={user} />
+            <div className="text-xs text-muted-foreground truncate px-2 pb-1">
+              {getPreview(user.id)}
+            </div>
+          </div>
+        ))}
 
         {/* Groups Section */}
         {!isCollapsed && groups.length > 0 && (
@@ -134,16 +154,11 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
               <Users2 className="h-6 w-6" />
               <span>Groups</span>
             </div>
-            {groups.map((group, idx) => (
-              <Button
-                key={idx}
-                variant={"grey"}
-                size="xl"
+            {groups.map((group) => (
+              <div
+                key={group.id}
+                className={`cursor-pointer hover:bg-accent rounded ${selectedUser?.id === group.id ? "bg-muted" : ""}`}
                 onClick={() => handleGroupClick(group)}
-                className={cn(
-                  "w-full justify-start gap-4 my-1",
-                  selectedUser?.id === group.id && "bg-muted shrink"
-                )}
               >
                 <Avatar className="flex justify-center items-center">
                   <AvatarImage
@@ -160,8 +175,11 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
                   <span className="text-xs text-muted-foreground">
                     {group.members.length} members
                   </span>
+                  <span className="text-xs text-muted-foreground truncate">
+                    {getPreview(group.id)}
+                  </span>
                 </div>
-              </Button>
+              </div>
             ))}
           </div>
         )}
