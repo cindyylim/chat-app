@@ -21,13 +21,9 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand, TanStack Query
 - **Authentication**: Kinde
-<<<<<<< HEAD
 - **Real-time messaging**: Pusher
 - **Database (Key-Value store)**: Upstash Redis
-=======
-- **Real-time**: Pusher, **Custom WebSocket Presence Server**
-- **Database**: Upstash Redis
->>>>>>> 69e073e (Add websocket as a presence server to broadcast user's online/offline status)
+- **Custom WebSocket Presence Server**
 - **Image Storage**: Cloudinary
 - **UI Components**: Radix UI
 - **Animations**: Framer Motion
