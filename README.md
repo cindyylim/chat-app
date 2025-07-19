@@ -20,8 +20,8 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand, TanStack Query
 - **Authentication**: Kinde
-- **Real-time**: Pusher
-- **Database**: Upstash Redis
+- **Real-time messaging**: Pusher
+- **Database (Key-Value store)**: Upstash Redis
 - **Image Storage**: Cloudinary
 - **UI Components**: Radix UI
 - **Animations**: Framer Motion
