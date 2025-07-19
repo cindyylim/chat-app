@@ -14,7 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "./ui/dialog";
-import { useOnlineStatus } from "../hooks/useOnlineStatus";
+import { usePresence } from "@/hooks/usePresence";
 
 const Navbar = () => {
     const { user: currentUser } = useKindeBrowserClient();
@@ -23,21 +23,7 @@ const Navbar = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const { setSelectedUser } = useSelectedUser();
-    const [isOnline, setIsOnline] = useState(false);
-
-    useEffect(() => {
-        if (!currentUser?.id) return;
-        const fetchStatus = async () => {
-            const res = await fetch(`/api/user/status?userId=${currentUser.id}`);
-            const data = await res.json();
-            setIsOnline(data.online);
-        };
-        fetchStatus();
-        const interval = setInterval(fetchStatus, 10000); // poll every 10s
-        return () => clearInterval(interval);
-    }, [currentUser?.id]);
-
-    useOnlineStatus(currentUser?.id);
+    const onlineUsers = usePresence(currentUser?.id);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -135,9 +121,9 @@ const Navbar = () => {
                         </Avatar>
                         <span
                             className={`absolute bottom-0 right-0 block w-3 h-3 rounded-full border-2 border-white ${
-                                isOnline ? "bg-green-500" : "bg-gray-400"
+                                onlineUsers.includes(currentUser?.id ?? "") ? "bg-green-500" : "bg-gray-400"
                             }`}
-                            title={isOnline ? "Online" : "Offline"}
+                            title={onlineUsers.includes(currentUser?.id ?? "") ? "Online" : "Offline"}
                         />
                     </div>
                     <span className="text-sm font-medium">

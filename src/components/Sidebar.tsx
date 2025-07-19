@@ -12,30 +12,14 @@ import CreateGroupDialog from "./chat/CreateGroupDialog";
 import { useEffect, useState } from "react";
 import { useUsers } from "@/hooks/useUsers";
 import PreferencesTab from "./PreferencesTab";
+import { usePresence } from "../hooks/usePresence";
 
 /* eslint-disable */
 interface SidebarProps {
   isCollapsed: boolean;
 }
 
-function UserListItem({ user }: { user: User }) {
-  const [isOnline, setIsOnline] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchStatus = async () => {
-      const res = await fetch(`/api/user/status?userId=${user.id}`);
-      const data = await res.json();
-      if (mounted) setIsOnline(data.online);
-    };
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 10000);
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
-  }, [user.id]);
-
+function UserListItem({ user, isOnline }: { user: User, isOnline: boolean }) {
   return (
     <div className="flex items-center gap-2">
       <div className="relative">
@@ -60,6 +44,7 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
   const { soundEnabled } = usePreferences();
   const { selectedUser, setSelectedUser } = useSelectedUser();
   const { user: currentUser } = useKindeBrowserClient();
+  const onlineUsers = usePresence(currentUser?.id);
   const [groups, setGroups] = useState<Group[]>([]);
   const { data: users = [] } = useUsers();
   const [previews, setPreviews] = useState<any[]>([]);
@@ -140,7 +125,7 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
             className={`cursor-pointer hover:bg-accent rounded ${selectedUser?.id === user.id ? "bg-muted" : ""}`}
             onClick={() => handleUserClick(user)}
           >
-            <UserListItem user={user} />
+            <UserListItem user={user} isOnline={onlineUsers.includes(user.id)} />
             <div className="text-xs text-muted-foreground truncate px-2 pb-1">
               {getPreview(user.id)}
             </div>
