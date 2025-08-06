@@ -1,30 +1,44 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export function usePresence(currentUserId?: string) {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     if (!currentUserId) return;
 
-    const ws = new WebSocket("ws://localhost:4001");
-    wsRef.current = ws;
+    // Publish user online status when component mounts
+    fetch("/api/presence/online", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUserId }),
+    });
 
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "join", userId: currentUserId }));
-    };
-
-    ws.onmessage = (event) => {
+    // Subscribe to presence updates
+    const eventSource = new EventSource("/api/presence/subscribe");
+    
+    eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === "presence" && Array.isArray(data.onlineUsers)) {
-          setOnlineUsers(data.onlineUsers);
+        if (data.type === "presence_update") {
+          setOnlineUsers(data.onlineUsers || []);
         }
-      } catch {}
+      } catch (error) {
+        console.error("Error parsing presence update:", error);
+      }
     };
 
+    eventSource.onerror = (error) => {
+      console.error("EventSource error:", error);
+    };
+
+    // Cleanup: publish offline status and close connection
     return () => {
-      ws.close();
+      fetch("/api/presence/offline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: currentUserId }),
+      });
+      eventSource.close();
     };
   }, [currentUserId]);
 

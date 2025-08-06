@@ -13,7 +13,7 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
 - 🔄 Real-time message updates
 - 📱 Responsive design
 - 🎯 User preferences (sound, theme)
-- 🟢 **Real-time online/offline presence with a custom WebSocket server**
+- 🟢 **Real-time online/offline presence using Redis pub/sub**
 
 ## Tech Stack
 
@@ -21,9 +21,8 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand, TanStack Query
 - **Authentication**: Kinde
-- **Real-time messaging**: Pusher
-- **Database (Key-Value store)**: Upstash Redis
-- **Custom WebSocket Presence Server**
+- **Real-time**: Pusher, **Redis pub/sub for presence**
+- **Database**: Upstash Redis
 - **Image Storage**: Cloudinary
 - **UI Components**: Radix UI
 - **Animations**: Framer Motion
@@ -65,31 +64,34 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
    CLOUDINARY_API_SECRET=
    ```
 
-4. **Start the custom WebSocket presence server:**
-   - Install the `ws` package if you haven't already:
-     ```bash
-     npm install ws
-     ```
-   - In a separate terminal, run:
-     ```bash
-     node presence-server.js
-     ```
-   - This will start the presence server on `ws://localhost:4001`.
-
-5. Run the development server:
+4. Run the development server:
    ```bash
    npm run dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Project Structure
-
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Presence System
 
-- The app uses a **custom WebSocket presence server** (`presence-server.js`) to track and broadcast online users in real time.
-- The client connects to `ws://localhost:4001` and receives updates about which users are online.
+- The app uses **Redis pub/sub** for real-time online/offline presence.
+- When users log in/out, presence events are published to Redis.
+- Clients subscribe to presence updates via Server-Sent Events (SSE).
+- No separate WebSocket server is required.
+
+## Project Structure
+
+```
+src/
+├── actions/         # Server actions
+├── app/            # Next.js app router
+├── components/     # React components
+│   ├── chat/       # Chat-related components
+│   ├── providers/  # Context providers
+│   └── ui/         # UI components
+├── db/            # Database utilities
+├── lib/           # Utility libraries (including presence manager)
+...
+```
 
 ---
 
