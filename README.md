@@ -13,7 +13,7 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
 - 🔄 Real-time message updates
 - 📱 Responsive design
 - 🎯 User preferences (sound, theme)
-- 🟢 **Real-time online/offline presence using Redis pub/sub**
+- 🟢 **Real-time online/offline presence using Pusher presence channels**
 
 ## Tech Stack
 
@@ -21,7 +21,7 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand, TanStack Query
 - **Authentication**: Kinde
-- **Real-time**: Pusher, **Redis pub/sub for presence**
+- **Real-time**: Pusher
 - **Database**: Upstash Redis
 - **Image Storage**: Cloudinary
 - **UI Components**: Radix UI
@@ -70,13 +70,6 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
    ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Presence System
-
-- The app uses **Redis pub/sub** for real-time online/offline presence.
-- When users log in/out, presence events are published to Redis.
-- Clients subscribe to presence updates via Server-Sent Events (SSE).
-- No separate WebSocket server is required.
 
 ## Project Structure
 

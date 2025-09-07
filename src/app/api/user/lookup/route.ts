@@ -22,38 +22,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // First, check if the user exists in Redis
-    const userKeys = await redis.keys("user:*");
-    const redisUsers = await Promise.all(
-      (userKeys || []).map(async (key) => {
-        try {
-          if (key.includes('conversations') || key.endsWith(':online')) {
-            return null;
-          }
-          const user = await redis.hgetall(key);
-          if (user && typeof user === 'object' && 'id' in user && 'email' in user) {
-            return user;
-          }
-          return null;
-        } catch (err) {
-          console.error(`Error fetching user ${key}:`, err);
-          return null;
+    // Since we can't use redis.keys(), we'll use a different approach
+    // We'll maintain a list of all users in a single key
+    const allUsersKey = "all_users";
+    
+    try {
+      // Try to get all users from a single key
+      const allUsersData = await redis.get(allUsersKey);
+      
+      if (allUsersData) {
+        const allUsers = JSON.parse(allUsersData as string);
+        
+        // Filter users by email and exclude current user
+        const matchingUsers = allUsers
+          .filter((user: any) => 
+            user && 
+            typeof user === 'object' && 
+            'id' in user && 
+            'email' in user && 
+            user.id !== currentUser.id
+          )
+          .filter((user: any) => 
+            user.email.toLowerCase().includes(email.toLowerCase())
+          );
+
+        if (matchingUsers.length > 0) {
+          return NextResponse.json({ users: matchingUsers });
         }
-      })
-    );
-
-    // Filter Redis users by email and exclude current user
-    const matchingRedisUsers = (redisUsers || [])
-      .filter((user): user is Record<string, string> => 
-        user !== null && typeof user === 'object' && 'id' in user && user.id !== currentUser.id
-      )
-      .filter(user => 
-        user.email.toLowerCase().includes(email.toLowerCase())
-      );
-
-    // If we found users in Redis, return them
-    if ((matchingRedisUsers || []).length > 0) {
-      return NextResponse.json({ users: matchingRedisUsers });
+      }
+    } catch (error) {
+      console.warn("Could not fetch users from all_users key:", error);
     }
 
     return NextResponse.json({ users: [] });

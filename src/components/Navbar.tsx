@@ -121,9 +121,9 @@ const Navbar = () => {
                         </Avatar>
                         <span
                             className={`absolute bottom-0 right-0 block w-3 h-3 rounded-full border-2 border-white ${
-                                onlineUsers.includes(currentUser?.id ?? "") ? "bg-green-500" : "bg-gray-400"
+                                onlineUsers.some(onlineUser => onlineUser.id === currentUser?.id) ? "bg-green-500" : "bg-gray-400"
                             }`}
-                            title={onlineUsers.includes(currentUser?.id ?? "") ? "Online" : "Offline"}
+                            title={onlineUsers.some(onlineUser => onlineUser.id === currentUser?.id) ? "Online" : "Offline"}
                         />
                     </div>
                     <span className="text-sm font-medium">

@@ -7,7 +7,18 @@ export async function GET() {
   const currentUser = await getUser();
   if (!currentUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const conversationIds = await redis.smembers(`user:${currentUser.id}:conversations`);
+  const userConversationsKey = `user:${currentUser.id}:conversations`;
+  let conversationIds: string[] = [];
+  
+  try {
+    const conversationsData = await redis.smembers(userConversationsKey);
+    if (conversationsData) {
+      conversationIds = conversationsData;
+    }
+  } catch (error) {
+    console.warn("Could not fetch user conversations:", error);
+  }
+  
   const previews = [];
 
   for (const conversationId of conversationIds) {

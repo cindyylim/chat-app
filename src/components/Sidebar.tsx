@@ -125,7 +125,7 @@ const Sidebar = ({ isCollapsed }: SidebarProps) => {
             className={`cursor-pointer hover:bg-accent rounded ${selectedUser?.id === user.id ? "bg-muted" : ""}`}
             onClick={() => handleUserClick(user)}
           >
-            <UserListItem user={user} isOnline={onlineUsers.includes(user.id)} />
+            <UserListItem user={user} isOnline={onlineUsers.some(onlineUser => onlineUser.id === user.id)} />
             <div className="text-xs text-muted-foreground truncate px-2 pb-1">
               {getPreview(user.id)}
             </div>

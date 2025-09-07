@@ -1,6 +1,5 @@
 "use client";
 import { Loader } from "lucide-react";
-import { checkAuthStatus } from "@/actions/auth.actions";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -12,13 +11,8 @@ export default function CallbackPage() {
   useEffect(() => {
     async function handleAuth() {
       try {
-        const response = await checkAuthStatus();
-        if (response.success) {
-          console.log("Auth successful, redirecting...");
-          router.push("/");
-        } else {
-          setError(response.error || "Authentication failed");
-        }
+        console.log("Auth successful, redirecting...");
+        router.push("/");
       } catch (err) {
         console.error("Auth error:", err);
         setError("An unexpected error occurred");

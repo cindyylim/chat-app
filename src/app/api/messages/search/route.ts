@@ -17,7 +17,18 @@ export async function POST(req: Request) {
         }
 
         // Get all conversations for the current user
-        const conversationIds = await redis.smembers(`user:${currentUser.id}:conversations`);
+        const userConversationsKey = `user:${currentUser.id}:conversations`;
+        let conversationIds: string[] = [];
+        
+        try {
+            const conversationsData = await redis.smembers(userConversationsKey);
+            if (conversationsData) {
+                conversationIds = conversationsData;
+            }
+        } catch (error) {
+            console.warn("Could not fetch user conversations:", error);
+        }
+        
         const searchResults = [];
 
         // Search through each conversation
@@ -26,7 +37,7 @@ export async function POST(req: Request) {
             
             for (const messageId of messageIds) {
                 const message = await redis.hgetall(messageId as string);
-                if (message && message.content && message.content.toLowerCase().includes(query.toLowerCase())) {
+                if (message && message.content && typeof message.content === 'string' && message.content.toLowerCase().includes(query.toLowerCase())) {
                     searchResults.push({
                         ...message,
                         conversationId,

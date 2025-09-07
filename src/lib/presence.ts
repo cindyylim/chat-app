@@ -1,8 +1,7 @@
-import redis from "@/db/db";
+import { pusherServer } from "./pusher";
 
 export class PresenceManager {
   private static instance: PresenceManager;
-  private onlineUsers: Set<string> = new Set();
 
   static getInstance(): PresenceManager {
     if (!PresenceManager.instance) {
@@ -11,35 +10,31 @@ export class PresenceManager {
     return PresenceManager.instance;
   }
 
-  async userOnline(userId: string): Promise<void> {
-    this.onlineUsers.add(userId);
-    await redis.sadd("online_users", userId);
-    await redis.publish("presence", JSON.stringify({
-      type: "online",
-      userId,
-      onlineUsers: Array.from(this.onlineUsers)
-    }));
+  // Generate authentication response for Pusher presence channels
+  async authenticatePresenceChannel(socketId: string, channel: string, userId: string, userInfo: any) {
+    try {
+      const authResponse = pusherServer.authorizeChannel(socketId, channel, {
+        user_id: userId,
+        user_info: userInfo
+      });
+      return authResponse;
+    } catch (error) {
+      console.error("Error authorizing channel:", error);
+      throw error;
+    }
   }
 
-  async userOffline(userId: string): Promise<void> {
-    this.onlineUsers.delete(userId);
-    await redis.srem("online_users", userId);
-    await redis.publish("presence", JSON.stringify({
-      type: "offline",
-      userId,
-      onlineUsers: Array.from(this.onlineUsers)
-    }));
-  }
-
-  async getOnlineUsers(): Promise<string[]> {
-    const users = await redis.smembers("online_users");
-    this.onlineUsers = new Set(users);
-    return users;
-  }
-
-  async initialize(): Promise<void> {
-    const users = await this.getOnlineUsers();
-    this.onlineUsers = new Set(users);
+  // Get current members from Pusher (this would typically be called from client-side)
+  async getChannelMembers(channelName: string) {
+    try {
+      // Note: Pusher doesn't provide a direct server-side API to get channel members
+      // This information is typically managed client-side through presence events
+      // For server-side access, you'd need to maintain your own state or use Pusher's webhooks
+      return [];
+    } catch (error) {
+      console.error("Error getting channel members:", error);
+      return [];
+    }
   }
 }
 
