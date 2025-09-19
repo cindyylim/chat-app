@@ -68,6 +68,11 @@ A modern, real-time chat application built with Next.js, featuring authenticatio
    ```bash
    npm run dev
    ```
+   Run elasticsearch
+   ```bash
+   cd elasticsearch-8.13.4 
+   ./bin/elasticsearch  
+   ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
