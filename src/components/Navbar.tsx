@@ -25,18 +25,6 @@ const Navbar = () => {
     const { setSelectedUser } = useSelectedUser();
     const onlineUsers = usePresence(currentUser?.id);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (searchQuery) {
-                handleSearch();
-            } else {
-                setSearchResults([]);
-            }
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
-
     const handleSearch = async () => {
         if (!searchQuery.trim()) return;
 
@@ -105,6 +93,11 @@ const Navbar = () => {
                             className="pl-8"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearch();
+                                }
+                            }}
                         />
                         {isSearching && (
                             <Loader2 className="absolute right-2 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />

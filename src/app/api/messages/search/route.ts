@@ -1,58 +1,51 @@
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextResponse } from "next/server";
-import redis from "@/db/db";
+import elastic from "@/lib/elasticsearch";
 
 export async function POST(req: Request) {
-    try {
-        const { getUser } = getKindeServerSession();
-        const currentUser = await getUser();
+  try {
+    const { getUser } = getKindeServerSession();
+    const currentUser = await getUser();
 
-        if (!currentUser) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const { query } = await req.json();
-        if (!query) {
-            return NextResponse.json({ error: "Search query is required" }, { status: 400 });
-        }
-
-        // Get all conversations for the current user
-        const userConversationsKey = `user:${currentUser.id}:conversations`;
-        let conversationIds: string[] = [];
-        
-        try {
-            const conversationsData = await redis.smembers(userConversationsKey);
-            if (conversationsData) {
-                conversationIds = conversationsData;
-            }
-        } catch (error) {
-            console.warn("Could not fetch user conversations:", error);
-        }
-        
-        const searchResults = [];
-
-        // Search through each conversation
-        for (const conversationId of conversationIds) {
-            const messageIds = await redis.zrange(`${conversationId}:messages`, 0, -1);
-            
-            for (const messageId of messageIds) {
-                const message = await redis.hgetall(messageId as string);
-                if (message && message.content && typeof message.content === 'string' && message.content.toLowerCase().includes(query.toLowerCase())) {
-                    searchResults.push({
-                        ...message,
-                        conversationId,
-                        messageId
-                    });
-                }
-            }
-        }
-
-        return NextResponse.json({ messages: searchResults });
-    } catch (error) {
-        console.error("Error searching messages:", error);
-        return NextResponse.json(
-            { error: "Internal server error" },
-            { status: 500 }
-        );
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-} 
+
+    const { query } = await req.json();
+    if (!query) {
+      return NextResponse.json({ error: "Search query is required" }, { status: 400 });
+    }
+
+    const esResponse = await elastic.search({
+      index: "messages",
+      query: {
+        bool: {
+          must: [
+            {
+              match: {
+                content: {
+                    query,
+                    fuzziness: "AUTO"
+                }
+              },
+            },
+          ],
+          filter: {
+            term: { senderId: currentUser.id }, // Optional filter
+          },
+        },
+      },
+      size: 50,
+    });
+
+    const hits = esResponse.hits.hits.map((hit: any) => ({
+      messageId: hit._id,
+      ...hit._source,
+    }));
+
+    return NextResponse.json({ messages: hits });
+  } catch (error) {
+    console.error("Search error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

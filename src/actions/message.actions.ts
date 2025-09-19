@@ -3,6 +3,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import redis from "@/db/db";
 import { Message } from "@/db/dummy";
 import { pusherServer } from "@/lib/pusher";
+import elastic from "@/lib/elasticsearch";
 
 type sendMessageActionArgs = {
   content: string;
@@ -48,6 +49,17 @@ export async function sendMessageAction({
     messageType,
   });
 
+    // Index in Elasticsearch
+  await elastic.index({
+    index: "messages",
+    id: messageId,
+    document: {
+      content: content,
+      senderId: senderId,
+      conversationId: conversationId,
+      timestamp: timestamp,
+    },
+  });
   await redis.zadd(`${conversationId}:messages`, {
     score: timestamp,
     member: JSON.stringify(messageId),

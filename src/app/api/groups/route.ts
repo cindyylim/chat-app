@@ -71,8 +71,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Since Redis has permission restrictions, we'll use a simple approach:
-    // Store groups in a JSON string under a user-specific key
     const userGroupsKey = `user:${currentUser.id}:groups`;
     
     try {

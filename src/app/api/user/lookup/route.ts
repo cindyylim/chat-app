@@ -22,8 +22,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Since we can't use redis.keys(), we'll use a different approach
-    // We'll maintain a list of all users in a single key
     const allUsersKey = "all_users";
     
     try {
